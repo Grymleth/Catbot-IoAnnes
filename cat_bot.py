@@ -39,6 +39,11 @@ def download_image(image_url, FILE_NAME):   # download image
     image_content = requests.get(image_url).content
     f = open(FILE_NAME, 'wb')
     f.write(image_content)
+    f.close()
+
+def upload_image(FILE_NAME):
+    image = api.media_upload(FILE_NAME)
+    return image.media_id
 
 # main reply function
 def reply_to_tweets():
@@ -55,10 +60,12 @@ def reply_to_tweets():
         if KEYHASHTAG in mention.text.lower():
             print('replying to: ' + mention.text)
             download_image(get_cat_image_url(), PIC_FILENAME)
-            api.update_with_media(
-                PIC_FILENAME, 
-                '@'+ mention.user.screen_name +' Here\'s a pic for you, nyan!', 
-                mention.id)
+            media_ids = []
+            media_ids.append(upload_image(PIC_FILENAME))
+            api.update_status(
+                status='@'+mention.user.screen_name+' Here\'s a picture for you, nyan!',
+                in_reply_to_status_id = mention.id,
+                media_ids = media_ids)
             
         last_id = mention.id
         write_last_tweet_id(last_id, LAST_TWEET_FILENAME)  
